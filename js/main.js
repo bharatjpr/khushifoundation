@@ -1,149 +1,96 @@
-;(function () {
-	
+jQuery(document).ready(function($) {
+
 	'use strict';
 
 
+	/************** Toggle *********************/
+    // Cache selectors
+    var lastId,
+        topMenu = $(".menu-first"),
+        topMenuHeight = 50,
+        // All list items
+        menuItems = topMenu.find("a"),
+        // Anchors corresponding to menu items
+        scrollItems = menuItems.map(function(){
+          
+          if($(this).hasClass('external')) {
+            return;
+          }
+            
+          var item = $($(this).attr("href"));
+          if (item.length) { return item; }
+        });
 
-	// iPad and iPod detection	
-	var isiPad = function(){
-		return (navigator.platform.indexOf("iPad") != -1);
-	};
+    // Bind click handler to menu items
+    // so we can get a fancy scroll animation
+    menuItems.click(function(e){
+      var href = $(this).attr("href"),
+          offsetTop = href === "#" ? 0 : $(href).offset().top-topMenuHeight+1;
+      $('html, body').stop().animate({ 
+          scrollTop: offsetTop
+      }, 300);
+      e.preventDefault();
+    });
 
-	var isiPhone = function(){
-	    return (
-			(navigator.platform.indexOf("iPhone") != -1) || 
-			(navigator.platform.indexOf("iPod") != -1)
-	    );
-	};
-
-	// Main Menu Superfish
-	var mainMenu = function() {
-
-		$('#fh5co-primary-menu').superfish({
-			delay: 0,
-			animation: {
-				opacity: 'show'
-			},
-			speed: 'fast',
-			cssArrows: true,
-			disableHI: true
-		});
-
-	};
-
-	// Parallax
-	var parallax = function() {
-		$(window).stellar();
-	};
-
-
-	// Offcanvas and cloning of the main menu
-	var offcanvas = function() {
-
-		var $clone = $('#fh5co-menu-wrap').clone();
-		$clone.attr({
-			'id' : 'offcanvas-menu'
-		});
-		$clone.find('> ul').attr({
-			'class' : '',
-			'id' : ''
-		});
-
-		$('#fh5co-page').prepend($clone);
-
-		// click the burger
-		$('.js-fh5co-nav-toggle').on('click', function(){
-
-			if ( $('body').hasClass('fh5co-offcanvas') ) {
-				$('body').removeClass('fh5co-offcanvas');
-			} else {
-				$('body').addClass('fh5co-offcanvas');
-			}
-			
-
-		});
-
-		$('#offcanvas-menu').css('height', $(window).height());
-
-		$(window).resize(function(){
-			var w = $(window);
+    // Bind to scroll
+    $(window).scroll(function(){
+       // Get container scroll position
+       var fromTop = $(this).scrollTop()+topMenuHeight;
+       
+       // Get id of current scroll item
+       var cur = scrollItems.map(function(){
+         if ($(this).offset().top < fromTop)
+           return this;
+       });
+       // Get the id of the current element
+       cur = cur[cur.length-1];
+       var id = cur && cur.length ? cur[0].id : "";
+       
+       if (lastId !== id) {
+           lastId = id;
+           // Set/remove active class
+           menuItems
+             .parent().removeClass("active")
+             .end().filter("[href=#"+id+"]").parent().addClass("active");
+       }                   
+    });
 
 
-			$('#offcanvas-menu').css('height', w.height());
 
-			if ( w.width() > 769 ) {
-				if ( $('body').hasClass('fh5co-offcanvas') ) {
-					$('body').removeClass('fh5co-offcanvas');
-				}
-			}
-
-		});	
-
-	}
-
-	
-
-	// Click outside of the Mobile Menu
-	var mobileMenuOutsideClick = function() {
-		$(document).click(function (e) {
-	    var container = $("#offcanvas-menu, .js-fh5co-nav-toggle");
-	    if (!container.is(e.target) && container.has(e.target).length === 0) {
-	      if ( $('body').hasClass('fh5co-offcanvas') ) {
-				$('body').removeClass('fh5co-offcanvas');
-			}
-	    }
-		});
-	};
+    $(window).scroll(function(){
+         $('.main-header').toggleClass('scrolled', $(this).scrollTop() > 1);
+     });
 
 
-	// Animations
 
-	var contentWayPoint = function() {
-		var i = 0;
-		$('.animate-box').waypoint( function( direction ) {
-
-			if( direction === 'down' && !$(this.element).hasClass('animated') ) {
-				
-				i++;
-
-				$(this.element).addClass('item-animate');
-				setTimeout(function(){
-
-					$('body .animate-box.item-animate').each(function(k){
-						var el = $(this);
-						setTimeout( function () {
-							el.addClass('fadeInUp animated');
-							el.removeClass('item-animate');
-						},  k * 50, 'easeInOutExpo' );
-					});
-					
-				}, 100);
-				
-			}
-
-		} , { offset: '85%' } );
-	};
-	
-	var stickyBanner = function() {
-		var $stickyElement = $('.sticky-banner');
-		var sticky;
-		if ($stickyElement.length) {
-		  sticky = new Waypoint.Sticky({
-		      element: $stickyElement[0],
-		      offset: 0
-		  })
-		}
-	}; 
-
-	// Document on load.
-	$(function(){
-		mainMenu();
-		parallax();
-		offcanvas();
-		mobileMenuOutsideClick();
-		contentWayPoint();
-		stickyBanner();
-	});
+    $('a[href="#top"]').click(function(){
+        $('html, body').animate({scrollTop: 0}, 'slow');
+        return false;
+    });
 
 
-}());
+    $('.flexslider').flexslider({
+      slideshow: true,
+      slideshowSpeed: 3000,  
+      animation: "fade",
+      directionNav: false,
+    });
+
+
+    $('.toggle-menu').click(function(){
+        $('.menu-first').toggleClass('show');
+        // $('.menu-first').slideToggle();
+    });
+
+    $('.menu-first li a').click(function(){
+      $('.menu-first').removeClass('show');
+    });
+
+
+    /************** LightBox *********************/
+      $(function(){
+        $('[data-rel="lightbox"]').lightbox();
+      });
+
+
+});
